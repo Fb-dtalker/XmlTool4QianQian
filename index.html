@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>XmlTool 4 浅浅</title>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+    <script src="./lib/jquery.min.js"></script>
+    <script src="./code/js/utils.js"></script>
+</head>
+
+<body>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            outline: none;
+        }
+        
+        body {
+            height: 100%;
+            width: 100%;
+            overflow-x: hidden;
+            position: absolute;
+            display: flex;
+            text-align: center;
+            overflow-x: hidden;
+            justify-content: center;
+            top: 0;
+            left: 0;
+        }
+    </style>
+    <div id='DrogFileArea' class="UI">
+        <div>
+            <a id="Hint">请将XML文件拖拽到这里</a>
+        </div>
+        <script>
+            document.getElementById('DrogFileArea').addEventListener('drop', (event) => {
+                event.preventDefault();
+                document.getElementById('Hint').innerHTML = "请将XML文件拖拽到这里";
+                //alert(event.dataTransfer.files[0].path); //获得文件路径
+
+                var filepath = event.dataTransfer.files[0].path;
+                console.log(filepath.slice(filepath.length - 4))
+                if (filepath.slice(filepath.length - 4) != ".xml") {
+                    alert("文件类型错误");
+                    return;
+                }
+
+                sourceFilePath = filepath;
+                InputXmlFile(filepath);
+
+                ShowUI('UI4Part');
+            })
+
+            document.getElementById('DrogFileArea').addEventListener("dragenter", (e) => {
+                e.preventDefault();
+                document.getElementById('Hint').innerHTML = "请松开";
+            })
+
+            document.getElementById('DrogFileArea').ondragleave = (e) => {
+                e.preventDefault();
+                document.getElementById('Hint').innerHTML = "请将XML文件拖拽到这里";
+            }
+
+            document.getElementById('DrogFileArea').addEventListener("dragover", e => {
+                e.preventDefault();
+            });
+        </script>
+        <style>
+            #DrogFileArea {
+                height: 30vw;
+                width: 97%;
+                margin: 0;
+                padding: 10;
+                text-align: center;
+                background-color: wheat;
+                /*flex 布局*/
+                display: flex;
+                /*实现垂直居中*/
+                align-items: center;
+                /*实现水平居中*/
+                justify-content: center;
+                border: black;
+                border-width: 0.2vw;
+                border-style: dashed;
+                border-radius: 3vw;
+            }
+            
+            #Hint {
+                color: snow;
+                font-size: 3vw;
+                text-shadow: rgb(66, 66, 66) 1px 0 0, rgb(66, 66, 66) 0 1px 0, rgb(66, 66, 66) -1px 0 0, rgb(66, 66, 66) 0 -1px 0;
+            }
+        </style>
+    </div>
+    <div id='SettingPage' style="position: absolute;">
+        <div>
+            <button class="css_btn_class" style="display: fixed;float: right;" onclick="ShowUI('UI4Part');InitPage();">
+                设置部件
+            </button>
+            <button class="css_btn_class" style="display: fixed;float: right;" onclick="ShowUI('UI4Suit');InitPage();">
+                设置套装
+            </button>
+        </div>
+
+        <style type="text/css">
+            .css_btn_class {
+                font-size: 2vw;
+                font-family: Arial;
+                font-weight: bold;
+                -moz-border-radius: 1vw;
+                -webkit-border-radius: 1vw;
+                border-radius: 1vw;
+                border: 1px solid #dcdcdc;
+                padding: 11px 18px;
+                text-decoration: none;
+                background: -webkit-gradient( linear, left top, left bottom, color-stop(27%, #ededed), color-stop(78%, #dfdfdf));
+                background: -moz-linear-gradient( center top, #ededed 27%, #dfdfdf 78%);
+                background: -ms-linear-gradient( top, #ededed 27%, #dfdfdf 78%);
+                filter: progid: DXImageTransform.Microsoft.gradient(startColorstr='#ededed', endColorstr='#dfdfdf');
+                background-color: #ededed;
+                color: #777777;
+                display: inline-block;
+                text-shadow: 1px 1px 10px #ffffff;
+                -webkit-box-shadow: inset 1px -1px 0px 0px #ffffff;
+                -moz-box-shadow: inset 1px -1px 0px 0px #ffffff;
+                box-shadow: inset 1px -1px 0px 0px #ffffff;
+            }
+            
+            .css_btn_class:hover {
+                background: -webkit-gradient( linear, left top, left bottom, color-stop(27%, #dfdfdf), color-stop(78%, #ededed));
+                background: -moz-linear-gradient( center top, #dfdfdf 27%, #ededed 78%);
+                background: -ms-linear-gradient( top, #dfdfdf 27%, #ededed 78%);
+                filter: progid: DXImageTransform.Microsoft.gradient(startColorstr='#dfdfdf', endColorstr='#ededed');
+                background-color: #dfdfdf;
+            }
+            
+            .css_btn_class:active {
+                position: relative;
+                top: 1px;
+            }
+        </style>
+        <div id='UI4Suit' class="UI">
+            <a class="title" style="user-select:none;display: fixed;float: left;">套装部分</a>
+            <div class="content">
+                <ul id="SuitInput">
+                </ul>
+            </div>
+        </div>
+
+        <div id='UI4Part' class="UI">
+            <a class="title" style="user-select:none;display: fixed;float: left;">部件部分</a>
+            <div class="content">
+                <ul id="PartsInput">
+                </ul>
+            </div>
+        </div>
+
+        <button class="css_btn_class" style="display: fixed;float: right;" onclick="Output()">
+            导出
+        </button>
+        <button class="css_btn_class" style="display: fixed;float: right;" onclick="Apply()">
+            应用
+        </button>
+
+        <style>
+            .UI {
+                width: 100%;
+                position: relative;
+            }
+            
+            a {
+                color: rgb(22, 22, 22);
+                font-size: 2.8vw;
+            }
+            
+            text {
+                color: rgb(22, 22, 22);
+                font-size: 2.0vw;
+                user-select: none;
+            }
+            
+            .content {
+                width: 100%;
+                /* background-color: rgb(66, 66, 66); */
+                margin-top: 1vw;
+                display: flex;
+                float: left;
+                font-size: 2vw;
+            }
+            
+            ul {
+                width: 100%;
+                display: absolute;
+                /* background-color: salmon; */
+                list-style-type: none;
+            }
+            /* input {
+                outline-style: none;
+                border: 1px solid #ccc;
+                border-radius: 3px;
+                padding: 0px;
+                width: 40vw;
+                height: 100%;
+                font-size: 100%;
+                font-weight: 300;
+                font-family: "Microsoft soft";
+            } */
+        </style>
+    </div>
+    <style>
+        #SettingPage {
+            width: 100%;
+            position: flex;
+            display: fixed;
+            float: left;
+        }
+    </style>
+</body>
+
+<script>
+    var sourceFilePath;
+
+    //获得‘服装部件’元素
+    var XmlConfig;
+    var MapConfig;
+    var SuitItems;
+    //把循环遍历，把元素的套装、分类按name为key拿出来
+    //to do
+    //获得子元素：xml.children => 返回[]
+
+    function XmlParse2Map(xmlObject) {
+        var map = new Map();
+
+        function AddPart(_map, PartElement) {
+            /*
+            _map.set(PartElement.getAttribute('name'), new Map());
+            var part = _map.get(PartElement.getAttribute('name'));
+            var items = PartElement.children;
+
+            for (var i = 0; i < items.length; ++i) {
+                //遍历部件
+                var child = items[i];
+                if (child.tagName == "部件") {
+                    part.set(child.getAttribute('name'), child);
+                }
+            }*/
+            _map.set(PartElement.getAttribute('name'), PartElement);
+
+        }
+
+        function AddSuit(_map, PartElement) {
+            SuitItems = new Map();
+            for (var i = 0; i < PartElement.children.length; ++i) {
+                var child = PartElement.children[i];
+                SuitItems.set(child.getAttribute('name'), child);
+            }
+            _map.set(PartElement.tagName, PartElement);
+        }
+
+        var children = xmlObject.children;
+        for (var i = 0; i < children.length; ++i) {
+            var child = children[i];
+            switch (child.tagName) {
+                case "套装":
+                    AddSuit(map, child);
+                    break;
+                case "分类":
+                    AddPart(map, child);
+                    break;
+                default:
+                    break;
+            }
+        }
+        return map;
+    }
+
+    //传入element应该加到的父级对象
+    function AddElement(target, element) {
+        var children = target.children;
+        var maxId = 0;
+        for (var i = 0; i < children.length; ++i) {
+            var id = parseInt(children[i].getAttribute('id'));
+            maxId = maxId < id ? id : maxId;
+        }
+
+        element.setAttribute("id", maxId + 1);
+        target.appendChild(element);
+    }
+
+    function CreateElement(tagName, attributes, innerHTML = "", sonElements = null) {
+        //document.createElement('分类')会生成<分类></分类>
+        var element = document.createElementNS("", tagName);
+        element.innerHTML = innerHTML;
+        for (var key in attributes) {
+            element.setAttribute(key, attributes[key]);
+        }
+        if (sonElements != null)
+            for (var i = 0; i < sonElements.length; ++i) {
+                element.innerHTML += Utils.Xml2String(sonElements[i]);
+            }
+        element.removeAttribute('xmlns');
+        return element;
+    }
+
+    function ShowUI(id) {
+        var uiList = document.getElementsByClassName("UI");
+        for (var i = 0; i < uiList.length; ++i) {
+            if (uiList[i].id == id) {
+                uiList[i].style.display = 'inline';
+            } else {
+                uiList[i].style.display = 'none';
+            }
+        }
+
+        if (id == 'DrogFileArea') {
+            document.getElementById('SettingPage').style.display = 'none';
+        } else {
+            document.getElementById('SettingPage').style.display = 'inline';
+        }
+    }
+    ShowUI('DrogFileArea');
+    //ShowUI('UI4Suit');
+    //ShowUI('UI4Part');
+
+
+    function InputXmlFile(filepath) {
+        var xmlContent = Utils.ReadFileSync(filepath);
+        XmlConfig = $.parseXML(xmlContent).children[0];
+        setInterval(() => {
+            MapConfig = XmlParse2Map(XmlConfig);
+        }, 1000);
+    }
+
+    function OutputXmlFile(xmlObject) {
+        var xmlStr = Utils.Xml2String(xmlObject);
+        Utils.WriteFileSync(sourceFilePath.slice(0, sourceFilePath.length - 4) + "_增加后.xml", xmlStr);
+    }
+
+    var SuitPartList = ['头发', '连衣裙', '外套', '上衣', '下装', '袜子', '鞋子', '妆容', '头饰', '耳饰', '腰饰', '皮肤', '项链', '围巾', '左手手饰', '右手手饰', '双手手饰', '左手手持物', '右手手持物', '纹身', '头纱', '面饰', '胸饰', '翅膀', '尾巴', '顶饰', '地面', '前景', '后景'];
+    var PartsList = ['星级', '套装', '文案', '获取方式', 'TAG', '冲突情况', '华丽', '简约', '可爱', '性感', '优雅', '清新', '清凉', '保暖'];
+
+    function InitPage() {
+        /*******************套装部分界面********************/
+        var ul = document.getElementById('SuitInput');
+        ul.innerHTML = `<li style="width: 100%;">
+                        <text style="position: relative; left: -20%;">
+                            套装名：
+                        </text>
+                        <input id='SuitName' style="position: absolute; height: 2.2vw;width: 30vw;font-size: 100%;left: -10vw;">
+                        <select id='SuitCases' style="position: absolute; height: 2.25vw;width: 15vw;font-size: 90%;left: 20.3vw;" onchange="RefreshSuit()"></select>
+                        </li>`;
+        for (var i = 0; i < SuitPartList.length; i += 2) {
+            ul.innerHTML += `<li style="width: 100%;">
+                        <text class='partType' id='` + SuitPartList[i] + `' style="position: absolute; left: -42vw;">
+                            ` + SuitPartList[i] + `：
+                        </text>
+                        <input id='` + SuitPartList[i] + `_input' style="position: absolute; height: 2.5vw;width: 30vw;font-size: 100%;left: -30vw;" onclick='Active("` + SuitPartList[i] + `")'>` + (SuitPartList[i + 1] == undefined ? "" : `
+                        <text class='partType' id='` + SuitPartList[i + 1] + `' style="position: relative; left: 5%;">
+                            ` + SuitPartList[i + 1] + `：
+                        </text>
+                        <input id='` + SuitPartList[i + 1] + `_input' style="position: absolute; height: 2.5vw;width: 30vw;font-size: 100%; left: 18vw;'" onclick='Active("` + SuitPartList[i + 1] + `")'>
+                    </li>`);
+        }
+
+        document.getElementById('SuitCases').innerHTML = "<option value='-新添加-'>-新添加-</option>";
+        SuitItems.forEach((value, key) => {
+            document.getElementById('SuitCases').innerHTML += ("<option value='" + key + "'>" + key + "</option>");
+        })
+
+        /*******************部件部分界面********************/
+        var ul2 = document.getElementById('PartsInput');
+        ul2.innerHTML = `<li style="width: 100%;">
+                        <text style="position: relative; left: -20%;">
+                            部件名：
+                        </text>
+                        <input id='PartName' style="position: absolute; height: 2.2vw;width: 25vw;font-size: 100%;left: -10vw;">
+                        <input id='PartCases' style="position: absolute; height: 2.25vw;width: 15vw;font-size: 90%;left: 18vw;" list='PartCases_cases'>
+                        <datalist id='PartCases_cases' size='10'>
+                        </datalist>
+                    </li>`;
+
+        for (var i = 0; i < PartsList.length; i += 2) {
+            ul2.innerHTML += `<li style="width: 100%;">
+                        <text class='partInfo' id='` + PartsList[i] + `' style="position: absolute; left: -42vw;">
+                            ` + PartsList[i] + `：
+                        </text>
+                        <input id='` + PartsList[i] + `_input' style="position: absolute; height: 2.5vw;width: 30vw;font-size: 100%;left: -30vw;" onclick='Active("` + PartsList[i] + `")'>` + (PartsList[i + 1] == undefined ? "" : `
+                        <text class='partInfo' id='` + PartsList[i + 1] + `' style="position: relative; left: 5%;">
+                            ` + PartsList[i + 1] + `：
+                        </text>
+                        <input id='` + PartsList[i + 1] + `_input' style="position: absolute; height: 2.5vw;width: 30vw;font-size: 100%; left: 18vw;'" onclick='Active("` + PartsList[i + 1] + `")'>
+                    </li>`);
+        }
+
+        document.getElementById('PartCases_cases').innerHTML = "";
+        SuitPartList.forEach((value, index) => {
+            document.getElementById('PartCases_cases').innerHTML += ("<option value='" + value + "'>" + value + "</option>");
+        })
+    }
+
+    function Active(id) {
+        var es = document.getElementsByClassName('partType');
+        for (var i = 0; i < es.length; ++i) {
+            if (es[i].id == id) {
+                es[i].style.color = 'red';
+            } else {
+                es[i].style.color = 'rgb(22, 22, 22)';
+            }
+        }
+    }
+
+    function RefreshSuit() {
+        var id = document.getElementById('SuitCases').value;
+        for (var i = 0; i < SuitPartList.length; ++i) {
+            document.getElementById(SuitPartList[i] + "_input").value = "";
+            document.getElementById(SuitPartList[i] + "_input").setAttribute('value', "");
+        }
+        if (id == '-新添加-') {
+            document.getElementById('SuitName').value = "";
+            document.getElementById('SuitName').setAttribute('value', "");
+            return;
+        }
+
+        var kv = SuitItems.get(id).innerHTML.split(',');
+        var k2v = new Map();
+        for (var i = 0; i < kv.length; ++i) {
+            k2v.set(kv[i].split(':')[0], kv[i].split(':')[1]);
+        }
+        console.log(k2v);
+        for (var i = 0; i < SuitPartList.length; ++i) {
+            document.getElementById(SuitPartList[i] + "_input").value = k2v.get(SuitPartList[i]) == undefined ? "" : k2v.get(SuitPartList[i]);
+            document.getElementById(SuitPartList[i] + "_input").setAttribute('value', k2v.get(SuitPartList[i]) == undefined ? "" : k2v.get(SuitPartList[i]));
+        }
+        document.getElementById('SuitName').value = id;
+        document.getElementById('SuitName').setAttribute('value', id);
+    }
+
+    function Apply() {
+
+        if (document.getElementById('UI4Suit').style.display == 'inline') {
+            //套装应用
+            if (document.getElementById('SuitName').value.trim() == "") {
+                return;
+            }
+
+            var item = SuitItems.get(document.getElementById('SuitName').value.trim());
+            var innerHTML = "";
+            for (var i = 0; i < SuitPartList.length; ++i) {
+                var v = document.getElementById(SuitPartList[i] + "_input").value;
+                innerHTML += (v == "" ? "" : SuitPartList[i] + ":" + v + ",");
+            }
+            if (innerHTML[innerHTML.length - 1] == ',') {
+                innerHTML = innerHTML.substring(0, innerHTML.length - 1);
+            } else {
+                innerHTML = innerHTML;
+            }
+
+            if (Utils.IsUndefined(item)) {
+                AddElement(MapConfig.get('套装'), CreateElement('套装内容', {
+                    'name': document.getElementById('SuitName').value.trim(),
+                }, innerHTML));
+            } else {
+                item.innerHTML = innerHTML;
+            }
+        } else {
+            //单独部件应用
+            if (document.getElementById('PartName').value.trim() == "" || document.getElementById('PartCases').value.trim() == "") {
+                return;
+            }
+
+            var finalElement = CreateElement('部件', {
+                'name': document.getElementById('PartName').value.trim()
+            });
+            for (var i = 0; i < PartsList.length; ++i) {
+                var element = CreateElement(PartsList[i], null, document.getElementById(PartsList[i] + "_input").value);
+                finalElement.appendChild(element);
+            }
+
+            var type = document.getElementById('PartCases').value.trim();
+            AddElement(MapConfig.get(type), finalElement);
+        }
+
+        return;
+    }
+
+    function Output() {
+        OutputXmlFile(XmlConfig);
+    }
+</script>
+
+</html>

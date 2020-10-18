@@ -1,0 +1,12 @@
+{
+    "name": "XmlTool4QianQian",
+    "version": "1.0.0",
+    "description": "",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron ."
+    },
+    "keywords": ["A xml tool for qianqian to import the xml config."],
+    "author": "FB",
+    "license": "MIT"
+}
